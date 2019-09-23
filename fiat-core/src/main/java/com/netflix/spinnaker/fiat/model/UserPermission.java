@@ -75,6 +75,46 @@ public class UserPermission {
     return this;
   }
 
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder();
+    result.append("ID: ").append(getId());
+    result.append(", ");
+    result.append("Roles: ").append(getRoles());
+    result.append(", ");
+    result.append("Accounts: ");
+    getAccounts()
+        .forEach(
+            account -> {
+              result.append("{").append("cloud: ").append(account.getCloudProvider());
+              result.append("accountName: ").append(account.getName());
+              result.append(", accountPermissions: ").append(account.getPermissions());
+              result.append("} ");
+            });
+
+    result.append(", ");
+    result.append("Applications: ");
+    getApplications()
+        .forEach(
+            application -> {
+              result.append("{");
+              result.append("appName: ").append(application.getName());
+              result.append(", appPermissions: ").append(application.getPermissions());
+              result.append("} ");
+            });
+
+    result.append(", ");
+    result.append("Resources: ");
+    getAllResources()
+        .forEach(
+            resource -> {
+              result.append("{");
+              result.append("resourceName: ").append(resource.getName());
+              result.append("} ");
+            });
+    return result.toString();
+  }
+
   @JsonIgnore
   public Set<Resource> getAllResources() {
     Set<Resource> retVal = new HashSet<>();

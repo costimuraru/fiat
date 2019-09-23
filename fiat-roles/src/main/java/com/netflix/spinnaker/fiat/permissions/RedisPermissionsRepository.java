@@ -84,6 +84,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   @Override
   public RedisPermissionsRepository put(@NonNull UserPermission permission) {
+    log.warn("PUT permissions: {}", permission);
     Map<ResourceType, Map<String, String>> resourceTypeToRedisValue =
         new HashMap<>(ResourceType.values().length);
 
@@ -156,11 +157,17 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
             Response<Boolean> isUserInRepo = p.sismember(allUsersKey(), id);
             for (ResourceType r : ResourceType.values()) {
+              log.info("Get key: {}", userKey(id, r));
               Response<Map<String, String>> resourceMap = p.hgetAll(userKey(id, r));
               userResponseMap.put(r, resourceMap);
               Response<Map<String, String>> unrestrictedMap = p.hgetAll(unrestrictedUserKey(r));
               unrestrictedResponseMap.put(r, unrestrictedMap);
-              log.info("Resource: {}; map size: {}", r, unrestrictedResponseMap.size());
+              log.info(
+                  "Resource: {}; id: {}, isUserInRepo: {}, map: {}",
+                  r,
+                  id,
+                  isUserInRepo,
+                  unrestrictedResponseMap);
             }
             Response<Boolean> admin = p.sismember(adminKey(), id);
             p.sync();
@@ -172,7 +179,10 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             userResponseMap.isAdmin = admin.get();
             UserPermission unrestrictedUser =
                 getUserPermission(UNRESTRICTED, unrestrictedResponseMap);
-            return Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
+            Optional<UserPermission> result =
+                Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
+            log.info("userPermission: {}", result.get());
+            return result;
           });
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);

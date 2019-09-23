@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("fiat.cache")
 public class ProviderCacheConfig {
 
-  private int expiresAfterWriteSeconds = 20;
+  private int expiresAfterWriteSeconds = 0;
 
   private long maximumStalenessTimeMs = Long.MAX_VALUE;
 }

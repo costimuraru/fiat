@@ -50,9 +50,9 @@ public class FiatClientConfigurationProperties {
 
   @Data
   public static class PermissionsCache {
-    private Integer maxEntries = 1000;
+    private Integer maxEntries = 10000;
 
-    private Integer expiresAfterWriteSeconds = 20;
+    private Integer expiresAfterWriteSeconds = 0;
   }
 
   @Data

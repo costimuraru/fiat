@@ -42,6 +42,16 @@ public class Permissions {
     this.permissions = p;
   }
 
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder();
+    for (Map.Entry<Authorization, List<String>> entry : permissions.entrySet()) {
+      result.append(entry.getKey() + ":" + entry.getValue().toString());
+      result.append(",");
+    }
+    return result.toString();
+  }
+
   /**
    * Specifically here for Jackson deserialization. Sends data through the {@link Builder} in order
    * to sanitize the input data (just in case).

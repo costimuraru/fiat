@@ -84,7 +84,7 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
       ResourceProvider<ServiceAccount> serviceAccountProvider,
       ResourceProvidersHealthIndicator healthIndicator,
       @Value("${fiat.write-mode.retry-interval-ms:10000}") long retryIntervalMs,
-      @Value("${fiat.write-mode.sync-delay-ms:600000}") long syncDelayMs,
+      @Value("${fiat.write-mode.sync-delay-ms:5000}") long syncDelayMs,
       @Value("${fiat.write-mode.sync-failure-delay-ms:600000}") long syncFailureDelayMs,
       @Value("${fiat.write-mode.sync-delay-timeout-ms:30000}") long syncDelayTimeoutMs) {
     this.discoveryClient = discoveryClient;
@@ -123,6 +123,7 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
       return;
     }
 
+    log.warn("syncDelayMs: {}", syncDelayMs);
     LockManager.LockOptions lockOptions =
         new LockManager.LockOptions()
             .withLockName("Fiat.UserRolesSyncer".toLowerCase())
@@ -130,6 +131,7 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
             .withSuccessInterval(Duration.ofMillis(syncDelayMs))
             .withFailureInterval(Duration.ofMillis(syncFailureDelayMs));
 
+    log.warn("Acquiring lock");
     lockManager.acquireLock(
         lockOptions,
         () -> {
@@ -173,6 +175,7 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
           combo.putAll(temp);
         }
 
+        log.error("UserRolesSyncer::updateUserPermissions: {}", genToString(combo));
         return updateUserPermissions(combo);
       } catch (ProviderException | PermissionResolutionException ex) {
         Status status = healthIndicator.health().getStatus();
@@ -204,6 +207,15 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
         isServerHealthy();
       }
     }
+  }
+
+  private String genToString(Map<String, UserPermission> combo) {
+    StringBuilder result = new StringBuilder();
+    for (Map.Entry<String, UserPermission> entry : combo.entrySet()) {
+      result.append(entry.getKey()).append(":").append(entry.getValue().toString());
+      result.append(", ");
+    }
+    return result.toString();
   }
 
   private boolean isServerHealthy() {

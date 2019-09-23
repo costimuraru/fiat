@@ -55,7 +55,7 @@ public class RolesController {
     try {
       UserPermission userPermission =
           permissionsResolver.resolve(ControllerSupport.convert(userId));
-      log.debug(
+      log.warn(
           "Updated user permissions (userId: {}, roles: {})",
           userId,
           userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
@@ -69,6 +69,7 @@ public class RolesController {
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
   public void putUserPermission(
       @PathVariable String userId, @RequestBody @NonNull List<String> externalRoles) {
+
     List<Role> convertedRoles =
         externalRoles.stream()
             .map(extRole -> new Role().setSource(Role.Source.EXTERNAL).setName(extRole))
@@ -81,10 +82,10 @@ public class RolesController {
 
     try {
       UserPermission userPermission = permissionsResolver.resolveAndMerge(extUser);
-      log.debug(
-          "Updated user permissions (userId: {}, roles: {}, suppliedExternalRoles: {})",
+      log.warn(
+          "Updated user permissions (userId: {}, userPermission: {}, suppliedExternalRoles: {})",
           userId,
-          userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList()),
+          userPermission,
           externalRoles);
 
       permissionsRepository.put(userPermission);
@@ -95,6 +96,7 @@ public class RolesController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.DELETE)
   public void deleteUserPermission(@PathVariable String userId) {
+    log.warn("deleteUserPermission: {}", userId);
     permissionsRepository.remove(ControllerSupport.convert(userId));
   }
 
@@ -102,7 +104,7 @@ public class RolesController {
   public long sync(
       HttpServletResponse response, @RequestBody(required = false) List<String> specificRoles)
       throws IOException {
-    log.info("Role sync invoked by web request for roles: {}", specificRoles);
+    log.warn("Role sync invoked by web request for roles: {}", specificRoles);
     long count = syncer.syncAndReturn(specificRoles);
     if (count == 0) {
       log.info("No users found with specified roles");
